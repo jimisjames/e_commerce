@@ -149,7 +149,7 @@
                 {% for product in products %}
                 <div class="col-xs">
                     <a href="/item_page/{{ product.id }}">
-                        <img class="iconStyle" src="{{ product.first_photo.image.url }}" alt="">
+                        <img class="iconStyle" src="{% if search != None %}/..{% endif %}{{ product.first_photo.image.url }}" alt="">
                     </a>
                     <a class="productLink" href="/item_page/{{ product.id }}">{{ product.name }} ${{ product.display }}</a>
                 </div>

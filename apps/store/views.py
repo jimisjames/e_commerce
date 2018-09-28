@@ -202,9 +202,10 @@ def products(request, search=None):
         product.display = product.price/100.0
         if len(product.photos.all()):
             product.first_photo = product.photos.all()[0]
- 
+    
     context = {
-        "products" : products
+        "products" : products,
+        "search" : search
     }
 
     return render(request, "store/jims_store_products.html", context)
