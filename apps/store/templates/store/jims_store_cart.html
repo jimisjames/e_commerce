@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Your Cart</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO"
+        crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
+        crossorigin="anonymous"></script>
+
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'store/css/jims_store.css' %}">
+
+    <script src="https://www.paypalobjects.com/api/checkout.js"></script>
+    <script>
+
+        $(document).ready(function () {
+
+            // Render the PayPal button
+            paypal.Button.render({
+            // Set your environment
+            env: 'sandbox', // sandbox | production
+
+            // Specify the style of the button
+            style: {
+            layout: 'vertical',  // horizontal | vertical
+            size:   'medium',    // medium | large | responsive
+            shape:  'rect',      // pill | rect
+            color:  'gold'       // gold | blue | silver | white | black
+            },
+
+            // Specify allowed and disallowed funding sources
+            //
+            // Options:
+            // - paypal.FUNDING.CARD
+            // - paypal.FUNDING.CREDIT
+            // - paypal.FUNDING.ELV
+            funding: {
+            allowed: [
+                paypal.FUNDING.CARD,
+                paypal.FUNDING.CREDIT
+            ],
+            disallowed: []
+            },
+
+            // PayPal Client IDs - replace with your own
+            // Create a PayPal app: https://developer.paypal.com/developer/applications/create
+            client: {
+            sandbox: 'AQheL0ubQfwSEwI25gr-AuyOEGp8yFT65ro-LwI_VETsBsTGvIUwLzpk6Vxfxs8XJHA8yQfO9TgkQv3j',
+            production: 'AWWQS8i0rfVKYHNtUI6NgN3Vxc8UOvt_PfZtmxP1kz7s-Hd2lD6bkvCBvRCpJbyb9_aYwKElFmNqWvCa'
+            },
+
+            payment: function (data, actions) {
+            return actions.payment.create({
+                payment: {
+                transactions: [
+                    {
+                    amount: {
+                        total: {{ request.session.total }},
+                        currency: 'USD'
+                    }
+                    }
+                ]
+                }
+            });
+            },
+
+            onAuthorize: function (data, actions) {
+            return actions.payment.execute()
+                .then(function () {
+
+                window.alert('Payment Complete!');
+
+                });
+            }
+            }, '#paypal-button');
+        });
+
+    </script>
+
+</head>
+
+<body>
+    <header>
+        <div id="new_nav" class="container">
+            <h1>Jim's Store</h1>
+        </div>
+    </header>
+    <header id="sticky" id="navbar">
+        <div id="new_nav" class="container">
+            <nav class="navbar navbar-expand-lg navbar-light bg-light">
+                <a class="navbar-brand" href="/">
+                    <img src="../static/store/pics/tent.png" alt="Tent Pic">
+                </a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                    aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav mr-auto">
+                        <li class="nav-item active">
+                            <a class="nav-link" href="/products">Home<span class="sr-only">(current)</span></a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/login_page">Log In</a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true"
+                                aria-expanded="false">
+                                The Store
+                            </a>
+                            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                <a class="dropdown-item" href="/contact">Shipping Rates</a>
+                                <a class="dropdown-item" href="/contact">About Us</a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" href="/contact">Contact Us</a>
+                            </div>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/cart">Cart ({{ request.session.cart_size }})</a>
+                        </li>
+                        {% if 'user_name' in request.session %}
+                            <li>
+                                <a class="nav-link">{{ request.session.user_name }}</a>
+                            </li>
+                            <li>
+                                <a href="/logout" class="red nav-link">Log Out</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                    <form  action="/products/search" method="post" class="form-inline my-2 my-lg-0">
+                        {% csrf_token %}
+                        <input class="form-control mr-sm-2" name="search" type="search" placeholder="Search" aria-label="Search">
+                        <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+                    </form>
+                </div>
+            </nav>
+        </div>
+    </header>
+    <div class="container article">
+        <div class="sideWidth">
+            <div class="sideBar notOnTablet grayBackground">
+                <h6>What are you looking for?</h6>
+                <form action="/products/search" method="post">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <input class="form-control mr-sm-2" name="search" type="search" placeholder="Search" aria-label="Search">
+                    </div>
+                    <div class="form-group">
+                        <input class="btn btn-success" type="submit" value="Search">
+                    </div>
+                </form>
+                <h6>Filter Search by Catagory:</h6>
+                <form class="searchForm" action="#">
+                    <input type="checkbox" name="tents"> Tents<br>
+                    <input type="checkbox" name="clothing"> Clothing<br>
+                    <input type="checkbox" name="boots"> Boots <br>
+                    <input type="checkbox" name="backpacks"> Backpacks<br>
+                    <input type="checkbox" name="cookWare"> Cookware<br>
+                    <input type="checkbox" name="stoves"> Stoves<br>
+                    <input type="checkbox" name="packagedFood"> Packaged food<br>
+                    <input type="checkbox" name="sleepingBag"> Sleeping Bags<br>
+                    <input type="checkbox" name="cots"> Cots<br>
+                    <input type="checkbox" name="bikes"> Bikes<br>
+                    <input type="checkbox" name="kayak"> Kayaks<br>
+                    <h6>Filter by Brand:</h6>
+                    <select name="brand" id="brand">
+                        <option selected>All Brands</option>
+                        <option>Black Diamond</option>
+                        <option>Coleman</option>
+                        <option>DMM</option>
+                        <option>Garmont</option>
+                        <option>Granite Gear</option>
+                        <option>Hydro Flask</option>
+                        <option>La Sportiva</option>
+                        <option>Marmot</option>
+                        <option>Osprey</option>
+                        <option>The North Face</option>
+                        <option>Therm-a-Rest</option>
+                    </select>
+                    <input type="submit" value="Apply">
+                </form>
+            </div>
+        </div>
+        <div class="container content fullOnTablet">
+            <div class="row">
+                <div class="titleRow grayBackground">
+                    <h3 class="col-md">Your Cart&#8595;</h3>
+                    <input class="form-control mr-sm-2 smallDevices fullOnTablet" type="search" placeholder="Search" aria-label="Search">
+                </div>
+            </div>
+            <div class="row grayBackground noPadOrMarginForPhones">
+                <div class="col-12">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th scope="col">Item Description</th>
+                                <th scope="col">Price</th>
+                                <th scope="col">Qty</th>
+                                <th scope="col">Total</th>
+                                <th scope="col">Remove From Cart</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in users_cart %}
+                            <tr>
+                                <td><a href="/item_page/{{ item.product.id }}">{{ item.product.name }}</a></td>
+                                <td>${{ item.product.display }}</td>
+                                <td>{{ item.quantity }}</td>
+                                <td>${{ item.total_in_dollars }}</td>
+                                <td class="links">
+                                    <a class="btn btn-danger" href="/remove/item/{{ item.product.id }}">Remove</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-11">
+                    <h5>Pre-Tax: ${{ total_in_dollars }}</h5>
+                    <h6>Tax: ${{ tax_in_dollars }}</h6>
+                    <h3>Total: ${{ grand_total_in_dollars }}</h3>
+                </div>
+
+            </div>
+            <div class="btn-col">
+                <a class="btn btn-success continue" href="/products">Continue Shopping</a>
+            </div>
+            <div class="row">
+                <div class="titleRow grayBackground">
+                    <h3 class="col-md">Checkout:</h3>
+                </div>
+            </div>
+            <div class="row grayBackground">
+                {% if not "user_id" in request.session.keys %}
+                <div class="row center">
+                    <form action="/login/checkout" method="post">
+                        {% csrf_token %}
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="email">Email</label>
+                                <input type="email" class="form-control" name="email" id="email" placeholder="Email">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="password">Password</label>
+                                <input type="password" class="form-control" name="password" id="password" placeholder="Password">
+                            </div>
+                        </div>
+                        {% if messages %}
+                            {% for message in messages %}
+                                {% if message.level == 30 %}
+                                    <ul>
+                                        <li class="red">{{ message }}</li>
+                                    </ul>
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                        <input type="submit" class="btn btn-primary" value="Log In">
+                        <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapseExample" aria-expanded="false"
+                            aria-controls="collapseExample">
+                            Continue as Guest
+                        </button>
+                    </form>
+                </div>
+                {% endif %}
+                <div class="collapse {{ request.session.show }}" id="collapseExample">
+                    <div class="card card-body">
+                        <form action="/checkout" method="post">
+                            {% csrf_token %}
+                            <h4>Shipping Information:</h4>
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label for="inputEmail2">Email</label>
+                                    <input type="text" class="form-control" name="email" id="inputEmail2" placeholder="Email" value="{{ request.session.email }}">
+                                    <small id="emailHelp" class="form-text">We'll never share your email address.</small>
+                                </div>
+                            </div>
+                            {% if messages %}
+                                {% for message in messages %}
+                                    {% if message.extra_tags == "email" %}
+                                        <ul>
+                                            <li class="red">{{ message }}</li>
+                                        </ul>
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                            <div class="form-group">
+                                <label for="inputName">Name <small>(for shipping label)</small></label>
+                                <input type="text" class="form-control" name="name" id="inputName" placeholder="First and Last" value="{{ request.session.name }}">
+                            </div>
+                            {% if messages %}
+                                {% for message in messages %}
+                                    {% if message.extra_tags == "name" %}
+                                        <ul>
+                                            <li class="red">{{ message }}</li>
+                                        </ul>
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                            <div class="form-group">
+                                <label for="address">Address</label>
+                                <input type="text" class="form-control" name="address" id="address" placeholder="1234 Main St" value="{{ request.session.address }}">
+                            </div>
+                            {% if messages %}
+                                {% for message in messages %}
+                                    {% if message.extra_tags == "address" %}
+                                        <ul>
+                                            <li class="red">{{ message }}</li>
+                                        </ul>
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                            <div class="form-group">
+                                <label for="address2">Address 2</label>
+                                <input type="text" class="form-control" name="address2" id="address2" placeholder="Apartment, suite, studio, or floor" value="{{ request.session.address2 }}">
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label for="city">City</label>
+                                    <input type="text" class="form-control" name="city" id="city" placeholder="City" value="{{ request.session.city }}">
+                                </div>
+                                <div class="form-group col-md-4">
+                                    <label for="state">State <small>(abv)</small></label>
+                                    <input type="text" class="form-control" name="state" id="state" placeholder="St" value="{{ request.session.state }}">
+                                </div>
+                                <div class="form-group col-md-2">
+                                    <label for="zip">Zip</label>
+                                    <input type="text" class="form-control" name="zip" id="zip" placeholder="12345" value="{{ request.session.zip }}">
+                                </div>
+                            </div>
+                            {% if messages %}
+                                {% for message in messages %}
+                                    {% if message.extra_tags == "address3" %}
+                                        <ul>
+                                            <li class="red">{{ message }}</li>
+                                        </ul>
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                            <p>Clicking checkout will prompt a PayPal pop-up that takes all major Credit Cards.</p>
+                            <p>Your order is logged when place it but will not ship if payment is not verified.</p>
+                            <p>For issues with proccessing payments please email us after you place your order.</p>
+                            <input type="hidden" name="order_total" value="{{ total }}">
+                            <button type="submit" class="btn btn-success">Checkout With PayPal</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="hidden {{ request.session.paypal }}">
+        <h1>Thank you for your order!</h1>
+        <h5>Please procced to pay now, your order will not be processed until payment is recieved, if you have any issues with paypal or else cannot pay now, please send us an email referencing your order number</h5>
+        <h3 class="space">Order number: {{ request.session.order_number }}</h3>
+        <div id="paypal-button"></div>
+        <a class="btn btn-danger" href="/logout">LogOut</a>
+    </div>
+    <footer class="fullOnTablet">
+        <div class="row">
+            <ul class="nav justify-content-center">
+                <li class="nav-item">
+                    <a class="nav-link" href="/">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/cart">Cart</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/login_page">Log In</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/contact">Contact Us</a>
+                </li>
+            </ul>
+        </div>
+        <h6 class="row">Jim's Store Is On Social Media!</h6>
+        <div class="row">
+            <ul class="nav justify-content-center">
+                <li class="nav-item">
+                    <a class="nav-link" href="//yelp.com"><img src="../static/store/pics/yelp.png" alt="icon"> Yelp</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="//facebook.com"><img src="../static/store/pics/facebook.png" alt="icon"> Facebook</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="//twitter.com"><img src="../static/store/pics/twitter.png" alt="icon"> Twitter</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="//instagram.com"><img src="../static/store/pics/instagram.png" alt="icon"> Instagram</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="//linkedin.com"><img src="../static/store/pics/linkedin.png" alt="icon"> LinkedIn</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="//pinterest.com"><img src="../static/store/pics/pinterest.png" alt="icon"> Pinterest</a>
+                </li>
+            </ul>
+        </div>
+    </footer>
+</body>
+
+</html>
